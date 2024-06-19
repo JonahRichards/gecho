@@ -6,7 +6,8 @@
 *.sh
 
 .idea/
-runs/
+venv/
+OLD/runs/
 round/
 figs/
 

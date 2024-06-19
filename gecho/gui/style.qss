@@ -1,0 +1,35 @@
+QWidget {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+QLabel {
+    color: #ffffff;
+}
+
+QPushButton {
+    background-color: #444444;
+    color: #ffffff;
+}
+
+QPushButton:hover {
+    background-color: #555555;
+}
+
+QMenuBar {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+QMenu {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+QScrollArea {
+    background-color: #2e2e2e;
+}
+
+QScrollBar {
+    background-color: #444444;
+}
