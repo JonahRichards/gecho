@@ -4,6 +4,7 @@ QWidget {
 }
 
 QLabel {
+    background-color
     color: #ffffff;
 }
 
@@ -19,6 +20,7 @@ QPushButton:hover {
 QMenuBar {
     background-color: #2e2e2e;
     color: #ffffff;
+    padding: 0px;
 }
 
 QMenu {
@@ -27,9 +29,66 @@ QMenu {
 }
 
 QScrollArea {
-    background-color: #2e2e2e;
+    border: 0px;
+}
+QScrollArea QWidget{
+    background-color: #1e1e1e;
+    border: 0px;
 }
 
 QScrollBar {
     background-color: #444444;
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+}
+
+LayerWidget {
+    background-color: #202020;
+
+    margin-top: 3px;
+    margin-left: 6px;
+    margin-bottom: 3px;
+
+    border: 0px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+LayerWidget[selected_property="true"] {
+    background-color: #2e2e2e;
+}
+
+
+LayerWidget[highlighted_property="true"] {
+    border-width: 3px;
+    border-color: white;
+    border-width-left: 3px;
+    border-width-top: 3px;
+    border-width-bottom: 3px;
+}
+
+LayerWidget[selected_property="true"][highlighted_property="true"] {
+    background-color: #888888;
+}
+/*
+LayerWidget[highlighted_property="true"] {
+    background-color: #666666;
+}
+
+LayerWidget[selected_property="true"][highlighted_property="true"] {
+    background-color: #888888;
+}
+*/
+
+LayerWidget QLabel {
+    background-color: none;
+    color: white;
+    margin: 5px;
+}
+
+LayerWidget[selected_property="true"] QLabel {
+    background-color: #000055;
+    color: red;
+    margin: 5px;
 }

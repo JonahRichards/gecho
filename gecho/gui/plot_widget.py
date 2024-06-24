@@ -11,12 +11,12 @@ class PlotWidget(QWidget):
         layout = QVBoxLayout()
 
         self.label = QLabel("Preview")
-        self.label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.label.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         layout.addWidget(self.label)
 
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
-        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         layout.addWidget(self.canvas)
 
         self.setLayout(layout)

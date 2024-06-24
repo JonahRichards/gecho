@@ -1,4 +1,115 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
+from PySide6.QtGui import QPainter, QIcon
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStyleOption, QStyle
+from PySide6.QtCore import Signal, Property, QSize
+
+
+class LayerWidget(QWidget):
+    selected = Signal()
+    deselect_all = Signal()
+
+    def __init__(self, parent_layout, type):
+        super().__init__()
+
+        self.setContentsMargins(0, 0, 0, 0)
+
+        self._selected = False
+        self._highlighted = False
+
+        self.parent_layout = parent_layout
+        #self.setFixedSize(300, 50)
+
+        layout = QHBoxLayout()
+
+        if type == "element":
+            self.icon = QIcon("resources/icons/element.png")
+        else:
+            self.icon = QIcon("resources/icons/monitor.png")
+
+        self.icon_label = QLabel("")
+        self.icon_label.setPixmap(self.icon.pixmap(QSize(30, 30)))
+        self.icon_label.setFixedSize(40, 30)
+        layout.addWidget(self.icon_label)
+
+        if type == "element":
+            layout.addWidget(QLabel("New Element"))
+        else:
+            layout.addWidget(QLabel("New Monitor"))
+
+        # self.name_input = QLineEdit()
+        # self.name_input.setPlaceholderText("Enter name")
+        # layout.addWidget(self.name_input)
+        #
+        # delete_button = QPushButton("Delete")
+        # delete_button.clicked.connect(self.delete_layer)
+        # layout.addWidget(delete_button)
+
+        self.setLayout(layout)
+
+        self.mousePressEvent = self.select_layer
+        self.enterEvent = self.highlight_layer
+        self.leaveEvent = self.unhighlight_layer
+
+    def paintEvent(self, pe):
+
+        o = QStyleOption()
+        o.initFrom(self)
+        p = QPainter(self)
+        self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, o, p, self)
+
+    def delete_layer(self):
+        self.parent_layout.removeWidget(self)
+        self.deleteLater()
+
+    def get_name(self):
+        return self.name_input.text()
+
+    def select_layer(self, event):
+        self.deselect_all.emit()
+        print("selected layer")
+        self.set_selected(True)
+        self.setProperty("selected", True)
+        self.selected.emit()
+        self.style().unpolish(self)
+        self.style().polish(self)
+
+    def deselect_layer(self):
+        print("deselected layer")
+        self.set_selected(False)
+        self.style().unpolish(self)
+        self.style().polish(self)
+
+    def highlight_layer(self, event):
+        print("highlighted layer")
+        self.set_highlighted(True)
+        self.style().unpolish(self)
+        self.style().polish(self)
+
+    def unhighlight_layer(self, event):
+        print("unhighlight layer layer")
+        self.set_highlighted(False)
+        self.style().unpolish(self)
+        self.style().polish(self)
+
+    def is_selected(self):
+        return self._selected
+
+    def set_selected(self, value):
+        self._selected = value
+
+    def is_highlighted(self):
+        return self._highlighted
+
+    def set_highlighted(self, value):
+        self._highlighted = value
+
+    selected_property = Property(bool, is_selected, set_selected)
+    highlighted_property = Property(bool, is_highlighted, set_highlighted)
+
+
+'''
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, \
+    QStyleOption, QStyle
 from PySide6.QtCore import Signal
 
 
@@ -7,9 +118,11 @@ class LayerWidget(QWidget):
 
     def __init__(self, parent_layout):
         super().__init__()
+        self.setObjectName("LayerWidget")
 
         self.parent_layout = parent_layout
-        self.setFixedSize(300, 100)
+        self.setMaximumHeight(100)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         layout = QVBoxLayout()
 
@@ -37,6 +150,13 @@ class LayerWidget(QWidget):
 
         self.setLayout(layout)
 
+    def paintEvent(self, pe):
+
+        o = QStyleOption()
+        o.initFrom(self)
+        p = QPainter(self)
+        self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, o, p, self)
+
     def delete_layer(self):
         self.parent_layout.removeWidget(self)
         self.deleteLater()
@@ -51,3 +171,4 @@ class LayerWidget(QWidget):
         except ValueError:
             intercept = 0.0
         return slope, intercept
+'''
