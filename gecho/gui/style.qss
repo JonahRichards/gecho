@@ -1,94 +1,143 @@
-QWidget {
-    background-color: #2e2e2e;
-    color: #ffffff;
+QLabel {
+    padding: 5px;
 }
 
-QLabel {
-    background-color
-    color: #ffffff;
+QWidget {
+    background-color: #1b2026;
+    color: white;
+    font-size: 14px;
+}
+
+QListWidget {
+    background-color: #0D1013;
 }
 
 QPushButton {
-    background-color: #444444;
-    color: #ffffff;
+    background-color: #474b50;
+    padding: 5px;
+    border-bottom: 1px solid #30353a;
+    border-left: 1px solid #30353a;
+    border-radius: 3px;
 }
-
 QPushButton:hover {
-    background-color: #555555;
+    background-color: #5e6267;
+}
+QPushButton:pressed {
+    background-color: #30353a;
+    border-top: 1px solid #474b50;
+    border-right: 1px solid #474b50;
 }
 
 QMenuBar {
-    background-color: #2e2e2e;
-    color: #ffffff;
+    background-color: #30353a;
+    padding: 0px;
+    border-bottom: 1px solid #474b50;
+}
+QMenuBar::item {
+    padding: 5px;
+    margin: 0px;
+}
+QMenuBar::item:selected {
+    background-color: #474b50;
+}
+QMenuBar::item:pressed {
+    background-color: #474b50;
+}
+QMenu {
+    background-color: #30353a;
+    border: 1px solid #474b50;
     padding: 0px;
 }
+QMenu::item {
+    padding: 5px;
+}
+QMenu::item:selected {
+    background-color: #474b50;
+}
+QMenu::item:pressed {
+    background-color: #474b50;
+}
 
-QMenu {
-    background-color: #2e2e2e;
-    color: #ffffff;
+QSplitter::handle {
+    background: #30353a;
+}
+
+
+QLineEdit {
+    background-color: #0D1013;
+    color: white;
+    border: 1px solid #474b50;
+}
+
+QTreeWidget {
+    background-color: #0D1013;
+    color: white;
+    border: 1px solid #474b50;
+    font-size: 12px;
 }
 
 QScrollArea {
+    background-color: #0D1013;
     border: 0px;
+    border-left: 1px solid #474b50;
+    border-top: 1px solid #474b50;
+    border-bottom: 1px solid #474b50;
 }
+
 QScrollArea QWidget{
-    background-color: #1e1e1e;
-    border: 0px;
+    background-color: transparent;
 }
 
-QScrollBar {
-    background-color: #444444;
-    padding: 0px;
-    margin: 0px;
-    border: 0px;
-}
-
-LayerWidget {
-    background-color: #202020;
-
+QScrollArea LayerWidget {
     margin-top: 3px;
     margin-left: 6px;
     margin-bottom: 3px;
+    margin-right: 0px;
 
-    border: 0px;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
+    border-top: 1px solid #30353a;
+    border-left: 1px solid #30353a;
+    border-bottom: 1px solid #30353a;
+
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
 }
 
 LayerWidget[selected_property="true"] {
-    background-color: #2e2e2e;
+    background-color: #1b2026;
+    border-top: 1px solid #30353a;
+    border-left: 1px solid #30353a;
+    border-bottom: 1px solid #30353a;
 }
-
-
 LayerWidget[highlighted_property="true"] {
-    border-width: 3px;
-    border-color: white;
-    border-width-left: 3px;
-    border-width-top: 3px;
-    border-width-bottom: 3px;
+    border-top: 1px solid #4bb4ff;
+    border-left: 1px solid #4bb4ff;
+    border-bottom: 1px solid #4bb4ff;
 }
 
-LayerWidget[selected_property="true"][highlighted_property="true"] {
-    background-color: #888888;
-}
 /*
-LayerWidget[highlighted_property="true"] {
-    background-color: #666666;
-}
 
-LayerWidget[selected_property="true"][highlighted_property="true"] {
-    background-color: #888888;
+QTreeWidget::branch:has-siblings:!adjoins-item {
+    border-image: url(resources/icons/vline.png) 0;
+}
+QTreeWidget::branch:has-siblings:adjoins-item {
+    border-image: url(resources/icons/branch-more.png) 0;
+}
+QTreeWidget::branch:!has-children:!has-siblings:adjoins-item {
+    border-image: url(resources/icons/branch-end.png) 0;
+}
+QTreeWidget::branch:has-children:!has-siblings:closed,
+QTreeWidget::branch:closed:has-children:has-siblings {
+        border-image: none;
+        image: url(resources/icons/branch-closed.png);
+}
+QTreeWidget::branch:open:has-children:!has-siblings,
+QTreeWidget::branch:open:has-children:has-siblings  {
+        border-image: none;
+        image: url(resources/icons/branch-open.png);
+
+
+QDialog {
+    border: 1px solid #474b50;
 }
 */
 
-LayerWidget QLabel {
-    background-color: none;
-    color: white;
-    margin: 5px;
-}
-
-LayerWidget[selected_property="true"] QLabel {
-    background-color: #000055;
-    color: red;
-    margin: 5px;
-}

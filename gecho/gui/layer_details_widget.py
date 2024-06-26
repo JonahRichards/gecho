@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 
 
 class LayerDetailsWidget(QWidget):
@@ -9,6 +9,10 @@ class LayerDetailsWidget(QWidget):
         super().__init__()
 
         self.layout = QVBoxLayout()
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.label = QLabel("Properties")
+        self.layout.addWidget(self.label)
 
         self.slope_layout = QHBoxLayout()
         self.slope_layout.addWidget(QLabel("Slope:"))

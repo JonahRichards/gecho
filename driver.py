@@ -9,6 +9,6 @@ if __name__ == "__main__":
     with open("gecho/gui/style.qss", "r") as f:
         app.setStyleSheet(f.read())
 
-    window = MainWindow()
+    window = MainWindow("data/")
     window.show()
     sys.exit(app.exec())

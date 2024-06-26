@@ -15,6 +15,8 @@ class LayerWidget(QWidget):
         self._selected = False
         self._highlighted = False
 
+        self.setFixedWidth(251)
+
         self.parent_layout = parent_layout
         #self.setFixedSize(300, 50)
 
@@ -48,13 +50,6 @@ class LayerWidget(QWidget):
         self.mousePressEvent = self.select_layer
         self.enterEvent = self.highlight_layer
         self.leaveEvent = self.unhighlight_layer
-
-    def paintEvent(self, pe):
-
-        o = QStyleOption()
-        o.initFrom(self)
-        p = QPainter(self)
-        self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, o, p, self)
 
     def delete_layer(self):
         self.parent_layout.removeWidget(self)
@@ -101,6 +96,12 @@ class LayerWidget(QWidget):
 
     def set_highlighted(self, value):
         self._highlighted = value
+
+    def paintEvent(self, pe):
+        o = QStyleOption()
+        o.initFrom(self)
+        p = QPainter(self)
+        self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, o, p, self)
 
     selected_property = Property(bool, is_selected, set_selected)
     highlighted_property = Property(bool, is_highlighted, set_highlighted)
