@@ -69,13 +69,6 @@ QLineEdit {
     border: 1px solid #474b50;
 }
 
-QTreeWidget {
-    background-color: #0D1013;
-    color: white;
-    border: 1px solid #474b50;
-    font-size: 12px;
-}
-
 QScrollArea {
     background-color: #0D1013;
     border: 0px;
@@ -114,8 +107,18 @@ LayerWidget[highlighted_property="true"] {
     border-bottom: 1px solid #4bb4ff;
 }
 
-/*
 
+QTreeWidget::branch:has-siblings:!adjoins-item {
+    border-image: url(resources/icons/vline.png) 0;
+}
+
+
+QTreeWidget {
+    background-color: #0D1013;
+    color: white;
+    border: 1px solid #474b50;
+    font-size: 12px;
+}
 QTreeWidget::branch:has-siblings:!adjoins-item {
     border-image: url(resources/icons/vline.png) 0;
 }
@@ -134,6 +137,9 @@ QTreeWidget::branch:open:has-children:!has-siblings,
 QTreeWidget::branch:open:has-children:has-siblings  {
         border-image: none;
         image: url(resources/icons/branch-open.png);
+}
+
+/*
 
 
 QDialog {

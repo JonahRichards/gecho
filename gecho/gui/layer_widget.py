@@ -15,7 +15,7 @@ class LayerWidget(QWidget):
         self._selected = False
         self._highlighted = False
 
-        self.setFixedWidth(251)
+        self.setFixedWidth(252)
 
         self.parent_layout = parent_layout
         #self.setFixedSize(300, 50)

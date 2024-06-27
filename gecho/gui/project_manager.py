@@ -12,6 +12,27 @@ class ProjectManager:
         self.project_files = []
         self.current_item = None
 
+    def sort_files(self):
+        self.project_files = self._sort_files(self.project_files)
+
+    def _sort_files(self, items):
+        items.sort(key=lambda item: item.casefold() if isinstance(item, str) else item[0].casefold())
+        return [item if isinstance(item, str) else (item[0], self._sort_files(item[1])) for item in items]
+
+    def add_file(self, file):
+        self.project_files.append(file)
+        self.sort_files()
+
+    def _sort_key(self, item):
+        # If the item is a string, return the string itself
+        if isinstance(item, str):
+            return item
+        # If the item is a tuple, return the first element of the tuple
+        elif isinstance(item, tuple) and isinstance(item[0], str):
+            return item[0]
+        else:
+            raise ValueError("Invalid item in list")
+
     def open_item(self, item):
         path = self.project_dir + item
         if os.path.isdir(path):

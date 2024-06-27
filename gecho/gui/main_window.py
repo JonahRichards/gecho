@@ -1,4 +1,5 @@
 import os
+import pickle
 
 from PySide6 import QtGui
 from PySide6.QtWidgets import QMainWindow, QMenu, QMenuBar, QVBoxLayout, QWidget, QScrollArea, QPushButton, \
@@ -11,9 +12,10 @@ from .layer_widget import LayerWidget
 from .layer_details_widget import LayerDetailsWidget
 
 from gecho.gui.project_manager import ProjectManager
-
+from gecho.geometry.geometry import Geometry
 
 ICON_MAP = {".npy": "3d-array.png",
+            ".geom": "geometry.png",
             ".tif": "image.png",
             ".tiff": "image.png",
             ".jpg": "image.png",
@@ -60,6 +62,16 @@ class MainWindow(QMainWindow):
         self.left_panel_layout = QVBoxLayout(left_panel)
 
         project_files_label = QLabel("Project Files")
+        self.left_panel_layout.addWidget(project_files_label)
+
+        self.project_buttons_layout = QHBoxLayout()
+        self.left_panel_layout.addLayout(self.project_buttons_layout)
+
+        self.add_geometry_button = QPushButton(" New Geometry")
+        self.add_geometry_button.setIcon(QIcon("resources/icons/geometry.png"))
+        self.add_geometry_button.clicked.connect(self.new_geometry)
+        self.project_buttons_layout.addWidget(self.add_geometry_button)
+
         self.project_list_widget = QTreeWidget()
         self.project_list_widget.setHeaderHidden(True)
         self.project_list_widget.itemSelectionChanged.connect(self.on_project_list_item_selected)
@@ -67,7 +79,6 @@ class MainWindow(QMainWindow):
         self.project_list_widget.itemCollapsed.connect(self.on_item_collapsed)
         self.project_list_widget.setIconSize(QSize(20, 20))
 
-        self.left_panel_layout.addWidget(project_files_label)
         self.left_panel_layout.addWidget(self.project_list_widget)
 
         # LAYERS PANEL
@@ -90,12 +101,12 @@ class MainWindow(QMainWindow):
         self.component_buttons_layout = QHBoxLayout()
         self.layers_layout.addLayout(self.component_buttons_layout)
 
-        self.add_element_button = QPushButton("Add Element")
+        self.add_element_button = QPushButton(" Add Element")
         self.add_element_button.setIcon(QIcon("resources/icons/element.png"))
         self.add_element_button.clicked.connect(self.add_element)
         self.component_buttons_layout.addWidget(self.add_element_button)
 
-        self.add_monitor_button = QPushButton("Add Monitor")
+        self.add_monitor_button = QPushButton(" Add Monitor")
         self.add_monitor_button.setIcon(QIcon("resources/icons/monitor.png"))
         self.add_monitor_button.clicked.connect(self.add_monitor)
         self.component_buttons_layout.addWidget(self.add_monitor_button)
@@ -139,7 +150,83 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(self.main_layout)
         self.setCentralWidget(central_widget)
 
+        self.project_manager.open_project('C:/Projects/gecho/data/test')
+        self.update_project_list()
+
         self.selected_layer = None
+
+    def get_new_name(self, directory, name, ext=None):
+        def num():
+            for i, _ in enumerate(iter(int, 1)):
+                yield str(i + 1)
+
+        new_name = name + ext if ext is not None else name
+
+        if not os.path.exists(directory + new_name):
+            return new_name
+        else:
+            nums = num()
+            while True:
+                new_name = name + next(nums)
+                new_name += ext if ext is not None else ""
+                if not os.path.exists(directory + new_name):
+                    return new_name
+
+    def new_geometry(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("New Geometry")
+        dialog.setMinimumWidth(500)
+
+        layout = QVBoxLayout(dialog)
+
+        grid_layout = QGridLayout()
+        layout.addLayout(grid_layout)
+
+        name_label = QLabel("Name:")
+        grid_layout.addWidget(name_label, 0, 0)
+
+        self.geometry_name_line_edit = QLineEdit()
+        self.geometry_name_line_edit.setText("New Geometry")
+        grid_layout.addWidget(self.geometry_name_line_edit, 0, 1)
+
+        button_layout = QHBoxLayout()
+        layout.addLayout(button_layout)
+
+        ok_button = QPushButton("OK")
+        cancel_button = QPushButton("Cancel")
+        ok_button.clicked.connect(lambda: self.create_geometry(dialog))
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+
+        dialog.exec_()
+
+    def create_geometry(self, dialog):
+        directory = self.project_manager.project_dir
+        name = self.geometry_name_line_edit.text()
+
+        if not name:
+            QMessageBox.warning(self, "Invalid Input", "Must provide geometry filename.")
+            return
+
+        if name.endswith(".geom"):
+            name = name[:-5]
+
+        name = self.get_new_name(directory, name, ".geom")
+
+        geometry = Geometry()
+
+        geometry_path = os.path.join(directory, name)
+
+        with open(geometry_path, 'wb') as file:
+            pickle.dump(geometry, file)
+            file.close()
+
+        self.project_manager.add_file(name)
+
+        dialog.accept()
+
+        self.update_project_list()
 
     def update_project_list(self):
         self.project_list_widget.clear()
@@ -208,15 +295,20 @@ class MainWindow(QMainWindow):
         project_directory = self.dir_line_edit.text()
         project_name = self.name_line_edit.text()
 
+        project_name = self.get_new_name(project_directory, project_name)
+
         if project_directory and project_name:
-            project_path = os.path.join(project_directory, project_name)
-            os.makedirs(project_path, exist_ok=True)
-            # Optionally add a default file to the new project directory
-            # with open(os.path.join(project_path, 'default.txt'), 'w') as f:
-            #     f.write('Default project file')
-            self.project_manager.open_project(project_path)
-            self.update_project_list()
-            dialog.accept()
+            if os.path.exists(project_directory):
+                project_path = os.path.join(project_directory, project_name)
+                os.makedirs(project_path, exist_ok=True)
+                # Optionally add a default file to the new project directory
+                # with open(os.path.join(project_path, 'default.txt'), 'w') as f:
+                #     f.write('Default project file')
+                self.project_manager.open_project(project_path)
+                self.update_project_list()
+                dialog.accept()
+            else:
+                QMessageBox.warning(self, "Invalid Input", "Invalid directory.")
         else:
             # You might want to show an error message to the user if the inputs are not valid
             QMessageBox.warning(self, "Invalid Input", "Both project directory and project name are required.")
@@ -239,7 +331,7 @@ class MainWindow(QMainWindow):
             selected_item = selected_items[0]  # Assuming single selection
             item_text = selected_item.text(0)
             self.project_manager.open_item(item_text)
-            self.plot_widget.plot(self.project_manager.current_item)
+            #self.plot_widget.plot(self.project_manager.current_item)
 
     def add_element(self):
         layer_widget = LayerWidget(self.layer_list_layout, "element")
