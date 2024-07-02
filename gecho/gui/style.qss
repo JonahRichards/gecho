@@ -17,6 +17,8 @@ QPushButton {
     padding: 5px;
     border-bottom: 1px solid #30353a;
     border-left: 1px solid #30353a;
+    border-top: 1px solid #474b50;
+    border-right: 1px solid #474b50;
     border-radius: 3px;
 }
 QPushButton:hover {
@@ -27,6 +29,13 @@ QPushButton:pressed {
     border-top: 1px solid #474b50;
     border-right: 1px solid #474b50;
 }
+QPushButton:disabled {
+    color: #999999;
+    background-color: #30353a;
+    border-top: 1px solid #474b50;
+    border-right: 1px solid #474b50;
+}
+
 
 QMenuBar {
     background-color: #30353a;
@@ -58,6 +67,9 @@ QMenu::item:pressed {
     background-color: #474b50;
 }
 
+QSplitter {
+    background-color: #0D1013;
+}
 QSplitter::handle {
     background: #30353a;
 }
@@ -67,6 +79,7 @@ QLineEdit {
     background-color: #0D1013;
     color: white;
     border: 1px solid #474b50;
+    padding: 3px;
 }
 
 QScrollArea {
@@ -111,14 +124,26 @@ LayerWidget[highlighted_property="true"] {
 QTreeWidget::branch:has-siblings:!adjoins-item {
     border-image: url(resources/icons/vline.png) 0;
 }
-
-
 QTreeWidget {
     background-color: #0D1013;
     color: white;
     border: 1px solid #474b50;
     font-size: 12px;
 }
+
+QTreeView::item {
+    border: 1px solid #0D1013;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+}
+QTreeView::item:hover {
+    border: 1px solid #4bb4ff;
+}
+QTreeView::item:selected {
+    background-color: #25547F;
+    border: none;
+}
+
 QTreeWidget::branch:has-siblings:!adjoins-item {
     border-image: url(resources/icons/vline.png) 0;
 }
@@ -138,6 +163,39 @@ QTreeWidget::branch:open:has-children:has-siblings  {
         border-image: none;
         image: url(resources/icons/branch-open.png);
 }
+
+
+QTabWidget::pane {
+    background-color: #1b2026;
+    border-left: 1px solid #30353a;
+}
+QTabWidget::tab-bar {
+    left: 0px;
+}
+QTabBar {
+    background-color: #0D1013;;
+}
+QTabBar::tab {
+    background-color: #0D1013;;
+    color: white;
+    padding: 5px;
+    border: 1px solid #30353a;
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+QTabBar::tab:selected {
+    background-color: #1b2026;
+    color: #fff;
+}
+
+QTabBar::tab:hover {
+    border: 1px solid #4bb4ff;
+    border-bottom: none
+}
+
+
 
 /*
 

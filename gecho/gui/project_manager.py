@@ -1,5 +1,7 @@
 import json
 import os.path
+import pickle
+
 import numpy as np
 from PIL import Image
 
@@ -11,6 +13,8 @@ class ProjectManager:
         self.project_name = None
         self.project_files = []
         self.current_item = None
+        self.current_item_path = ""
+        self.current_tab = 0
 
     def sort_files(self):
         self.project_files = self._sort_files(self.project_files)
@@ -39,6 +43,9 @@ class ProjectManager:
             self.current_item = None
         name, ext = os.path.splitext(path)
         match ext:
+            case ".geom":
+                with open(path, "rb") as file:
+                    self.current_item = pickle.load(file)
             case ".npy":
                 self.current_item = np.load(path)
             case '.jpg' | '.jpeg' | '.png' | '.tif' | '.tiff':

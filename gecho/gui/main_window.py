@@ -4,7 +4,7 @@ import pickle
 from PySide6 import QtGui
 from PySide6.QtWidgets import QMainWindow, QMenu, QMenuBar, QVBoxLayout, QWidget, QScrollArea, QPushButton, \
     QSplitter, QLabel, QHBoxLayout, QSizePolicy, QTreeWidget, QFrame, QDialog, QGridLayout, QLineEdit, QFileDialog, \
-    QMessageBox, QTreeWidgetItem
+    QMessageBox, QTreeWidgetItem, QTabWidget
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QAction, QIcon
 from .plot_widget import PlotWidget
@@ -81,57 +81,13 @@ class MainWindow(QMainWindow):
 
         self.left_panel_layout.addWidget(self.project_list_widget)
 
-        # LAYERS PANEL
-        right_panel = QFrame(self.top_splitter)
-        self.top_splitter.addWidget(right_panel)
-        self.right_panel_layout = QHBoxLayout(right_panel)
-        self.right_panel_layout.setContentsMargins(0, 0, 0, 0)
+        self.tabs = QTabWidget()
+        self.top_splitter.addWidget(self.tabs)
+        self.tabs.currentChanged.connect(self.on_tab_changed)
 
-        self.layers_panel = QFrame(right_panel)
-        self.layers_panel.setContentsMargins(0, 0, 0, 0)
-        self.layers_panel.setFixedWidth(270)
-        self.right_panel_layout.addWidget(self.layers_panel)
-
-        self.layers_layout = QVBoxLayout(self.layers_panel)
-        self.layers_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        self.layers_layout.addWidget(QLabel("Components"))
-
-        # LAYER BUTTONS
-        self.component_buttons_layout = QHBoxLayout()
-        self.layers_layout.addLayout(self.component_buttons_layout)
-
-        self.add_element_button = QPushButton(" Add Element")
-        self.add_element_button.setIcon(QIcon("resources/icons/element.png"))
-        self.add_element_button.clicked.connect(self.add_element)
-        self.component_buttons_layout.addWidget(self.add_element_button)
-
-        self.add_monitor_button = QPushButton(" Add Monitor")
-        self.add_monitor_button.setIcon(QIcon("resources/icons/monitor.png"))
-        self.add_monitor_button.clicked.connect(self.add_monitor)
-        self.component_buttons_layout.addWidget(self.add_monitor_button)
-
-        # LAYER LIST
-        self.layer_area = QScrollArea()
-        self.layer_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        # self.layer_area.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        self.layer_area.setWidgetResizable(True)
-        self.layers_layout.addWidget(self.layer_area)
-
-        self.layer_list_widget = QWidget()
-        self.layer_list_widget.setContentsMargins(0, 0, 0, 0)
-
-        self.layer_list_layout = QVBoxLayout()
-        self.layer_list_layout.setContentsMargins(0, 3, 0, 3)
-        self.layer_list_layout.setSpacing(0)
-        self.layer_list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # Top-align the layers
-        self.layer_list_widget.setLayout(self.layer_list_layout)
-        self.layer_area.setWidget(self.layer_list_widget)
-
-        # LAYER PROPERTIES
-        self.layer_details_widget = LayerDetailsWidget()
-        self.layer_details_widget.parameters_changed.connect(self.update_plot)
-        self.right_panel_layout.addWidget(self.layer_details_widget)
+        self.construct()
+        self.simulate()
+        self.analyze()
 
         self.top_splitter.setStretchFactor(0, 1)
         self.top_splitter.setStretchFactor(1, 3)
@@ -153,7 +109,216 @@ class MainWindow(QMainWindow):
         self.project_manager.open_project('C:/Projects/gecho/data/test')
         self.update_project_list()
 
-        self.selected_layer = None
+    def construct(self):
+        # LAYERS PANEL
+        right_panel = QFrame(self.tabs)
+        self.right_panel_layout = QHBoxLayout(right_panel)
+        self.right_panel_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.layers_panel = QFrame(right_panel)
+        self.layers_panel.setContentsMargins(0, 0, 0, 0)
+        self.layers_panel.setFixedWidth(270)
+        self.right_panel_layout.addWidget(self.layers_panel)
+
+        self.layers_layout = QVBoxLayout(self.layers_panel)
+        self.layers_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.layers_labels_layout = QHBoxLayout()
+        self.layers_layout.addLayout(self.layers_labels_layout)
+
+        # self.layers_labels_layout.addWidget(QLabel("Geometry:"))
+        self.layers_file_name_label = QLabel("")
+        # self.layers_file_name_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.layers_labels_layout.addWidget(self.layers_file_name_label)
+
+        # LAYER BUTTONS
+        self.component_buttons_layout = QHBoxLayout()
+        self.layers_layout.addLayout(self.component_buttons_layout)
+
+        self.add_layer_button = QPushButton(" Add Layer")
+        self.add_layer_button.setIcon(QIcon("resources/icons/layer.png"))
+        self.add_layer_button.clicked.connect(self.add_layer)
+        self.component_buttons_layout.addWidget(self.add_layer_button)
+
+        # self.add_monitor_button = QPushButton(" Add Monitor")
+        # self.add_monitor_button.setIcon(QIcon("resources/icons/monitor.png"))
+        # self.add_monitor_button.clicked.connect(self.add_monitor)
+        # self.component_buttons_layout.addWidget(self.add_monitor_button)
+
+        # LAYER LIST
+        self.layer_area = QScrollArea()
+        self.layer_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # self.layer_area.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        self.layer_area.setWidgetResizable(True)
+        self.layers_layout.addWidget(self.layer_area)
+
+        self.layer_list_widget = QWidget()
+        self.layer_list_widget.setContentsMargins(0, 0, 0, 0)
+
+        self.layer_list_layout = QVBoxLayout()
+        self.layer_list_layout.setContentsMargins(0, 3, 0, 3)
+        self.layer_list_layout.setSpacing(0)
+        self.layer_list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # Top-align the layers
+        self.layer_list_widget.setLayout(self.layer_list_layout)
+        self.layer_area.setWidget(self.layer_list_widget)
+
+        # LAYER PROPERTIES
+        self.layer_properties_layout = QVBoxLayout()
+        self.right_panel_layout.addLayout(self.layer_properties_layout)
+        self.layer_properties_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.layer_properties_layout.addWidget(QLabel(""))
+
+        self.layer_details_widget = LayerDetailsWidget()
+        self.layer_details_widget.parameters_changed.connect(self.update_plot)
+
+        self.layer_properties_layout.addWidget(self.layer_details_widget)
+
+        self.tabs.addTab(right_panel, " Construct ")
+
+    def update_construct(self):
+        self.layers_file_name_label.setText(self.project_manager.current_item_path.split("/")[-1])
+
+        while self.layer_list_layout.count():
+            item = self.layer_list_layout.takeAt(0)
+            if item is not None:
+                item.widget().deleteLater()
+            else:
+                break
+
+        if self.project_manager.current_item_path.endswith(".geom"):
+            self.add_layer_button.setDisabled(False)
+            self.layers_file_name_label.setStyleSheet("QLabel {color: #ffffff}")
+
+            layer_widget = LayerWidget(self.project_manager.current_item.wall)
+            layer_widget.selected.connect(self.display_layer_details)
+            layer_widget.deselect_all.connect(self.deselect_all_layers)
+            self.layer_list_layout.addWidget(layer_widget)
+            layer_widget.mousePressEvent(Qt.MouseEventFlag.MouseEventCreatedDoubleClick)
+
+            for i, layer in enumerate(self.project_manager.current_item.layers):
+                layer_widget = LayerWidget(layer)
+                layer_widget.selected.connect(self.display_layer_details)
+                layer_widget.deselect_all.connect(self.deselect_all_layers)
+                self.layer_list_layout.addWidget(layer_widget)
+        else:
+            self.add_layer_button.setDisabled(True)
+            self.layers_file_name_label.setStyleSheet("QLabel {color: #777a7e}")
+            self.layer_details_widget.layer = None
+
+        self.layer_details_widget.update_properties()
+
+    def simulate(self):
+        # LAYERS PANEL
+        right_panel = QFrame(self.tabs)
+        self.tabs.addTab(right_panel, " Simulate ")
+        self.right_panel_layout = QHBoxLayout(right_panel)
+        self.right_panel_layout.setContentsMargins(0, 0, 0, 0)
+
+        # self.layers_panel = QFrame(right_panel)
+        # self.layers_panel.setContentsMargins(0, 0, 0, 0)
+        # self.layers_panel.setFixedWidth(270)
+        # self.right_panel_layout.addWidget(self.layers_panel)
+        #
+        # self.layers_layout = QVBoxLayout(self.layers_panel)
+        # self.layers_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        #
+        # self.layers_layout.addWidget(QLabel("Components"))
+        #
+        # # LAYER BUTTONS
+        # self.component_buttons_layout = QHBoxLayout()
+        # self.layers_layout.addLayout(self.component_buttons_layout)
+        #
+        # self.add_element_button = QPushButton(" Add Element")
+        # self.add_element_button.setIcon(QIcon("resources/icons/element.png"))
+        # self.add_element_button.clicked.connect(self.add_element)
+        # self.component_buttons_layout.addWidget(self.add_element_button)
+        #
+        # # self.add_monitor_button = QPushButton(" Add Monitor")
+        # # self.add_monitor_button.setIcon(QIcon("resources/icons/monitor.png"))
+        # # self.add_monitor_button.clicked.connect(self.add_monitor)
+        # # self.component_buttons_layout.addWidget(self.add_monitor_button)
+        #
+        # # LAYER LIST
+        # self.layer_area = QScrollArea()
+        # self.layer_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # # self.layer_area.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        # self.layer_area.setWidgetResizable(True)
+        # self.layers_layout.addWidget(self.layer_area)
+        #
+        # self.layer_list_widget = QWidget()
+        # self.layer_list_widget.setContentsMargins(0, 0, 0, 0)
+        #
+        # self.layer_list_layout = QVBoxLayout()
+        # self.layer_list_layout.setContentsMargins(0, 3, 0, 3)
+        # self.layer_list_layout.setSpacing(0)
+        # self.layer_list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # Top-align the layers
+        # self.layer_list_widget.setLayout(self.layer_list_layout)
+        # self.layer_area.setWidget(self.layer_list_widget)
+        #
+        # # LAYER PROPERTIES
+        # self.layer_details_widget = LayerDetailsWidget()
+        # self.layer_details_widget.parameters_changed.connect(self.update_plot)
+        # self.right_panel_layout.addWidget(self.layer_details_widget)
+
+    def analyze(self):
+        # LAYERS PANEL
+        right_panel = QFrame(self.tabs)
+        self.tabs.addTab(right_panel, " Analyze ")
+        # self.right_panel_layout = QHBoxLayout(right_panel)
+        # self.right_panel_layout.setContentsMargins(0, 0, 0, 0)
+        #
+        # self.layers_panel = QFrame(right_panel)
+        # self.layers_panel.setContentsMargins(0, 0, 0, 0)
+        # self.layers_panel.setFixedWidth(270)
+        # self.right_panel_layout.addWidget(self.layers_panel)
+        #
+        # self.layers_layout = QVBoxLayout(self.layers_panel)
+        # self.layers_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        #
+        # self.layers_layout.addWidget(QLabel("Components"))
+        #
+        # # LAYER BUTTONS
+        # self.component_buttons_layout = QHBoxLayout()
+        # self.layers_layout.addLayout(self.component_buttons_layout)
+        #
+        # self.add_element_button = QPushButton(" Add Element")
+        # self.add_element_button.setIcon(QIcon("resources/icons/element.png"))
+        # self.add_element_button.clicked.connect(self.add_element)
+        # self.component_buttons_layout.addWidget(self.add_element_button)
+        #
+        # # self.add_monitor_button = QPushButton(" Add Monitor")
+        # # self.add_monitor_button.setIcon(QIcon("resources/icons/monitor.png"))
+        # # self.add_monitor_button.clicked.connect(self.add_monitor)
+        # # self.component_buttons_layout.addWidget(self.add_monitor_button)
+        #
+        # # LAYER LIST
+        # self.layer_area = QScrollArea()
+        # self.layer_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # # self.layer_area.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        # self.layer_area.setWidgetResizable(True)
+        # self.layers_layout.addWidget(self.layer_area)
+        #
+        # self.layer_list_widget = QWidget()
+        # self.layer_list_widget.setContentsMargins(0, 0, 0, 0)
+        #
+        # self.layer_list_layout = QVBoxLayout()
+        # self.layer_list_layout.setContentsMargins(0, 3, 0, 3)
+        # self.layer_list_layout.setSpacing(0)
+        # self.layer_list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # Top-align the layers
+        # self.layer_list_widget.setLayout(self.layer_list_layout)
+        # self.layer_area.setWidget(self.layer_list_widget)
+        #
+        # # LAYER PROPERTIES
+        # self.layer_details_widget = LayerDetailsWidget()
+        # self.layer_details_widget.parameters_changed.connect(self.update_plot)
+        # self.right_panel_layout.addWidget(self.layer_details_widget)
+
+    def on_tab_changed(self, index):
+        self.project_manager.current_tab = index
+        match index:
+            case 0:
+                self.update_construct()
 
     def get_new_name(self, directory, name, ext=None):
         def num():
@@ -214,13 +379,9 @@ class MainWindow(QMainWindow):
 
         name = self.get_new_name(directory, name, ".geom")
 
-        geometry = Geometry()
-
         geometry_path = os.path.join(directory, name)
 
-        with open(geometry_path, 'wb') as file:
-            pickle.dump(geometry, file)
-            file.close()
+        Geometry(geometry_path)
 
         self.project_manager.add_file(name)
 
@@ -325,19 +486,28 @@ class MainWindow(QMainWindow):
     def on_item_collapsed(self, item):
         item.setIcon(0, QIcon("resources/icons/folder-closed.png"))
 
+    def get_full_path(self, item):
+        path_parts = []
+        while item:
+            path_parts.insert(0, item.text(0))
+            item = item.parent()
+        return '/'.join(path_parts)
+
     def on_project_list_item_selected(self):
         selected_items = self.project_list_widget.selectedItems()
         if selected_items:
             selected_item = selected_items[0]  # Assuming single selection
-            item_text = selected_item.text(0)
-            self.project_manager.open_item(item_text)
-            #self.plot_widget.plot(self.project_manager.current_item)
+            item_text = self.get_full_path(selected_item)
+            self.project_manager.current_item_path = item_text
+            match self.project_manager.current_tab:
+                case 0:
+                    if item_text.endswith(".geom"):
+                        self.project_manager.open_item(item_text)
+                    self.update_construct()
 
-    def add_element(self):
-        layer_widget = LayerWidget(self.layer_list_layout, "element")
-        layer_widget.selected.connect(lambda: self.display_layer_details(layer_widget))
-        layer_widget.deselect_all.connect(self.deselect_all_layers)
-        self.layer_list_layout.addWidget(layer_widget)
+    def add_layer(self):
+        self.project_manager.current_item.new_layer()
+        self.update_construct()
 
     def add_monitor(self):
         layer_widget = LayerWidget(self.layer_list_layout, "monitor")
@@ -345,10 +515,12 @@ class MainWindow(QMainWindow):
         layer_widget.deselect_all.connect(self.deselect_all_layers)
         self.layer_list_layout.addWidget(layer_widget)
 
-    def display_layer_details(self, layer_widget):
-        self.selected_layer = layer_widget
-        slope, intercept = self.layer_details_widget.get_parameters()
-        self.layer_details_widget.set_parameters(slope, intercept)
+    def display_layer_details(self, layer):
+        self.layer_details_widget.layer = layer
+        self.layer_details_widget.update_properties()
+
+        # slope, intercept = self.layer_details_widget.get_parameters()
+        # self.layer_details_widget.set_parameters(slope, intercept)
 
     def deselect_all_layers(self):
         for i in range(self.layer_list_layout.count()):

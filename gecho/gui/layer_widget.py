@@ -2,13 +2,17 @@ from PySide6.QtGui import QPainter, QIcon
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStyleOption, QStyle
 from PySide6.QtCore import Signal, Property, QSize
 
+from gecho.geometry.geometry import Geometry
+
 
 class LayerWidget(QWidget):
-    selected = Signal()
+    selected = Signal(Geometry.Layer)
     deselect_all = Signal()
 
-    def __init__(self, parent_layout, type):
+    def __init__(self, layer):
         super().__init__()
+
+        self.layer = layer
 
         self.setContentsMargins(0, 0, 0, 0)
 
@@ -17,33 +21,21 @@ class LayerWidget(QWidget):
 
         self.setFixedWidth(252)
 
-        self.parent_layout = parent_layout
-        #self.setFixedSize(300, 50)
-
         layout = QHBoxLayout()
 
-        if type == "element":
-            self.icon = QIcon("resources/icons/element.png")
+        if isinstance(layer, Geometry.Layer):
+            self.icon = QIcon("resources/icons/layer.png")
         else:
-            self.icon = QIcon("resources/icons/monitor.png")
+            self.icon = QIcon("resources/icons/wall.png")
 
         self.icon_label = QLabel("")
         self.icon_label.setPixmap(self.icon.pixmap(QSize(30, 30)))
-        self.icon_label.setFixedSize(40, 30)
+        self.icon_label.setFixedSize(40, 40)
         layout.addWidget(self.icon_label)
 
-        if type == "element":
-            layout.addWidget(QLabel("New Element"))
-        else:
-            layout.addWidget(QLabel("New Monitor"))
-
-        # self.name_input = QLineEdit()
-        # self.name_input.setPlaceholderText("Enter name")
-        # layout.addWidget(self.name_input)
-        #
-        # delete_button = QPushButton("Delete")
-        # delete_button.clicked.connect(self.delete_layer)
-        # layout.addWidget(delete_button)
+        self.label = QLabel()
+        self.label.setText(layer.name)
+        layout.addWidget(self.label)
 
         self.setLayout(layout)
 
@@ -63,24 +55,21 @@ class LayerWidget(QWidget):
         print("selected layer")
         self.set_selected(True)
         self.setProperty("selected", True)
-        self.selected.emit()
+        self.selected.emit(self.layer)
         self.style().unpolish(self)
         self.style().polish(self)
 
     def deselect_layer(self):
-        print("deselected layer")
         self.set_selected(False)
         self.style().unpolish(self)
         self.style().polish(self)
 
     def highlight_layer(self, event):
-        print("highlighted layer")
         self.set_highlighted(True)
         self.style().unpolish(self)
         self.style().polish(self)
 
     def unhighlight_layer(self, event):
-        print("unhighlight layer layer")
         self.set_highlighted(False)
         self.style().unpolish(self)
         self.style().polish(self)
