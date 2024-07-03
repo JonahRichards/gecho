@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
         self.plot_widget.setMinimumHeight(100)
         self.vertical_splitter.addWidget(self.plot_widget)
 
-        self.vertical_splitter.setStretchFactor(0, 5)
+        self.vertical_splitter.setStretchFactor(0, 2)
         self.vertical_splitter.setStretchFactor(1, 1)
 
         self.main_layout.addWidget(self.vertical_splitter)
@@ -171,6 +171,8 @@ class MainWindow(QMainWindow):
 
         self.layer_details_widget = LayerDetailsWidget()
         self.layer_details_widget.parameters_changed.connect(self.update_plot)
+        self.layer_details_widget.info_changed.connect(self.update_construct_names)
+        self.layer_details_widget.delete_layer.connect(self.delete_layer)
 
         self.layer_properties_layout.addWidget(self.layer_details_widget)
 
@@ -207,6 +209,21 @@ class MainWindow(QMainWindow):
             self.layer_details_widget.layer = None
 
         self.layer_details_widget.update_properties()
+
+    def update_construct_names(self):
+        wall = self.layer_list_layout.itemAt(0)
+        wall.widget().label.setText(self.project_manager.current_item.wall.name)
+
+        for i in range(1, self.layer_list_layout.count()):
+            item = self.layer_list_layout.itemAt(i)
+            item.widget().label.setText(self.project_manager.current_item.layers[i-1].name)
+
+        self.project_manager.current_item.save()
+
+    def delete_layer(self, layer):
+        self.project_manager.current_item.layers.remove(layer)
+        self.project_manager.current_item.save()
+        self.update_construct()
 
     def simulate(self):
         # LAYERS PANEL
@@ -504,6 +521,7 @@ class MainWindow(QMainWindow):
                     if item_text.endswith(".geom"):
                         self.project_manager.open_item(item_text)
                     self.update_construct()
+                    self.update_plot()
 
     def add_layer(self):
         self.project_manager.current_item.new_layer()
@@ -529,16 +547,7 @@ class MainWindow(QMainWindow):
                 layer_widget.deselect_layer()
 
     def update_plot(self):
-        x = range(-10, 11)  # example range from -10 to 10
-        self.plot_widget.figure.clear()
-        ax = self.plot_widget.figure.add_subplot(111)
-
-        for i in range(self.layer_list_layout.count()):
-            layer_widget = self.layer_list_layout.itemAt(i).widget()
-            if layer_widget:
-                slope, intercept = self.layer_details_widget.get_parameters()
-                y = [slope * xi + intercept for xi in x]
-                ax.plot(x, y, label=f"y={slope}x+{intercept}")
-
-        ax.legend()
-        self.plot_widget.canvas.draw()
+        match self.project_manager.current_tab:
+            case 0:
+                self.project_manager.current_item.save()
+                self.plot_widget.plot_geometry(self.project_manager.current_item)
