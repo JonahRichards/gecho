@@ -195,7 +195,21 @@ QTabBar::tab:hover {
     border-bottom: none
 }
 
-
+QComboBox {
+    background-color: #0D1013;
+    border: 1px solid #474b50;
+    padding: 3px;
+}
+QComboBox::drop-down {
+    background-color: #30353a;
+    border: 1px solid #474b50;
+}
+QComboBox::down-arrow {
+    border-image: url(resources/icons/branch-open.png);
+}
+QComboBox::item {
+    padding: 3px;
+}
 
 /*
 

@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
         self.plot_widget.setMinimumHeight(100)
         self.vertical_splitter.addWidget(self.plot_widget)
 
-        self.vertical_splitter.setStretchFactor(0, 2)
+        self.vertical_splitter.setStretchFactor(0, 4)
         self.vertical_splitter.setStretchFactor(1, 1)
 
         self.main_layout.addWidget(self.vertical_splitter)
@@ -526,6 +526,7 @@ class MainWindow(QMainWindow):
     def add_layer(self):
         self.project_manager.current_item.new_layer()
         self.update_construct()
+        self.update_plot()
 
     def add_monitor(self):
         layer_widget = LayerWidget(self.layer_list_layout, "monitor")
@@ -549,5 +550,6 @@ class MainWindow(QMainWindow):
     def update_plot(self):
         match self.project_manager.current_tab:
             case 0:
-                self.project_manager.current_item.save()
-                self.plot_widget.plot_geometry(self.project_manager.current_item)
+                if isinstance(self.project_manager.current_item, Geometry):
+                    self.project_manager.current_item.save()
+                    self.plot_widget.plot_geometry(self.project_manager.current_item)

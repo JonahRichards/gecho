@@ -54,13 +54,13 @@ class PlotWidget(QWidget):
         self.setLayout(layout)
 
     def plot_layer(self, layer: Geometry.Layer):
-        z = np.append(layer.bottom.zs, layer.top.zs[::-1])
-        r = np.append(layer.bottom.rs, layer.top.rs[::-1])
+        z = np.concatenate([layer.bot.zs, layer.top.zs[::-1], [layer.bot.zs[0]]])
+        r = np.concatenate([layer.bot.rs, layer.top.rs[::-1], [layer.bot.rs[0]]])
 
         c = next(self.colors)
 
         self.ax.fill(z, r, c=c, label=layer.name)
-        self.ax.plot(z, r, c="white", linestyle="-", linewidth=1)
+        self.ax.scatter(z, r, c="white", linestyle="-", linewidth=1)
 
         ref = True
 
@@ -76,10 +76,10 @@ class PlotWidget(QWidget):
         for layer in geometry.layers:
             self.plot_layer(layer)
 
-        x = np.array(geometry.wall.bottom.zs)
-        y = np.array(geometry.wall.bottom.rs)
+        x = np.array(geometry.wall.bot.zs)
+        y = np.array(geometry.wall.bot.rs)
 
-        self.ax.plot(x, y, "r", label=geometry.wall.name)
+        self.ax.plot(x, y, "r.", label=geometry.wall.name)
         self.ax.plot(x, -y, "r")
 
         # for mon in chamber.monitors:
