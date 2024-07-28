@@ -85,18 +85,24 @@ class PointsWidget(QWidget):
         return widget
 
     def update_zs(self):
-        self.boundary.zs = [
-            float(self.points_layout.itemAt(i).widget().layout().itemAt(1).widget().text())
-            for i in range(self.points_layout.count())
-        ]
-        self.parameters_changed.emit()
+        try:
+            self.boundary.zs = [
+                float(self.points_layout.itemAt(i).widget().layout().itemAt(1).widget().text())
+                for i in range(self.points_layout.count())
+            ]
+            self.parameters_changed.emit()
+        except ValueError:
+            pass
 
     def update_rs(self):
-        self.boundary.rs = [
-            float(self.points_layout.itemAt(i).widget().layout().itemAt(3).widget().text())
-            for i in range(self.points_layout.count())
-        ]
-        self.parameters_changed.emit()
+        try:
+            self.boundary.rs = [
+                float(self.points_layout.itemAt(i).widget().layout().itemAt(3).widget().text())
+                for i in range(self.points_layout.count())
+            ]
+            self.parameters_changed.emit()
+        except ValueError:
+            pass
 
     def add_point(self):
         new_z = (self.boundary.zs[-2] + self.boundary.zs[-1]) / 2
@@ -165,7 +171,6 @@ class LayerDetailsWidget(QWidget):
         self.bottom_type_select.addItem("Function")
         self.bottom_type_select.currentIndexChanged.connect(self.bottom_type_changed)
         #self.bottom_type_select.setWindowFlags(self.bottom_type_select.windowFlags() | Qt.WindowStaysOnTopHint)
-        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
 
         self.bottom_points_widget = PointsWidget()
         self.bottom_points_widget.parameters_changed.connect(self.parameters_changed.emit)
@@ -194,9 +199,47 @@ class LayerDetailsWidget(QWidget):
         self.top_num_points.textChanged.connect(self.top_num_points_changed)
         self.top_num_points.setValidator(int_validator)
 
+        self.mesh_lines = QLineEdit()
+        self.mesh_lines.textChanged.connect(self.mesh_lines_changed)
+        self.mesh_lines.setValidator(int_validator)
+
+        self.mesh_dx = QLineEdit()
+        self.mesh_dx.textChanged.connect(self.mesh_dx_changed)
+        self.mesh_dx.setValidator(float_validator)
+
+        self.mesh_dy = QLineEdit()
+        self.mesh_dy.textChanged.connect(self.mesh_dy_changed)
+        self.mesh_dy.setValidator(float_validator)
+
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+
         self.emits_enabled = False
 
         self.update_properties()
+
+    def mesh_dy_changed(self):
+        try:
+            self.layer.dy = float(self.mesh_dy.text())
+            if self.emits_enabled:
+                self.parameters_changed.emit()
+        except ValueError:
+            pass
+
+    def mesh_dx_changed(self):
+        try:
+            self.layer.dx = float(self.mesh_dx.text())
+            if self.emits_enabled:
+                self.parameters_changed.emit()
+        except ValueError:
+            pass
+
+    def mesh_lines_changed(self):
+        try:
+            self.layer.lines = int(self.mesh_lines.text())
+            if self.emits_enabled:
+                self.parameters_changed.emit()
+        except ValueError:
+            pass
 
     def top_num_points_changed(self):
         try:
@@ -283,125 +326,140 @@ class LayerDetailsWidget(QWidget):
             # NAME
             name_layout = QHBoxLayout()
             self.layout.addLayout(name_layout)
-            name_layout.addWidget(QLabel("Layer Name: "))
+            name_label = QLabel("Layer Name: ")
+            name_layout.addWidget(name_label)
             name_layout.addWidget(self.name)
             self.name.setText(self.layer.name)
             name_layout.addWidget(self.delete_button)
 
-            split_layout = QHBoxLayout()
-            self.layout.addLayout(split_layout)
+            match type(self.layer):
+                case Geometry.Layer | Geometry.Wall:
+                    split_layout = QHBoxLayout()
+                    self.layout.addLayout(split_layout)
 
-            left_layout = QVBoxLayout()
-            left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-            split_layout.addLayout(left_layout)
+                    left_layout = QVBoxLayout()
+                    left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+                    split_layout.addLayout(left_layout)
 
-            bounds_label = QLabel("Extent")
-            bounds_label.setFont(u_font)
-            left_layout.addWidget(bounds_label)
+                    properties_label = QLabel("Extent")
+                    properties_label.setFont(u_font)
+                    left_layout.addWidget(properties_label)
 
-            bounds_layout = QHBoxLayout()
-            left_layout.addLayout(bounds_layout)
+                    bounds_layout = QHBoxLayout()
+                    left_layout.addLayout(bounds_layout)
 
-            bounds_layout.addWidget(QLabel("z<sub>MIN</sub>"))
-            self.zi.setText(str(self.layer.bot.zi))
-            bounds_layout.addWidget(self.zi)
-            bounds_layout.addWidget(QLabel("z<sub>MAX</sub>"))
-            self.zf.setText(str(self.layer.bot.zf))
-            bounds_layout.addWidget(self.zf)
+                    bounds_layout.addWidget(QLabel("z<sub>MIN</sub>"))
+                    self.zi.setText(str(self.layer.bot.zi))
+                    bounds_layout.addWidget(self.zi)
+                    bounds_layout.addWidget(QLabel("z<sub>MAX</sub>"))
+                    self.zf.setText(str(self.layer.bot.zf))
+                    bounds_layout.addWidget(self.zf)
 
-            right_layout = QVBoxLayout()
-            right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-            split_layout.addLayout(right_layout)
+                    right_layout = QVBoxLayout()
+                    right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+                    split_layout.addLayout(right_layout)
 
-            materials_label = QLabel("Material Properties")
-            materials_label.setFont(u_font)
-            right_layout.addWidget(materials_label)
+                    materials_label = QLabel("Material Properties")
+                    materials_label.setFont(u_font)
+                    right_layout.addWidget(materials_label)
 
-            material_layout = QHBoxLayout()
-            right_layout.addLayout(material_layout)
+                    material_layout = QHBoxLayout()
+                    right_layout.addLayout(material_layout)
 
-            material_layout.addWidget(QLabel("\u03B5"))
-            self.ep.setText(str(self.layer.ep))
-            material_layout.addWidget(self.ep)
+                    material_layout.addWidget(QLabel("\u03B5"))
+                    self.ep.setText(str(self.layer.ep))
+                    material_layout.addWidget(self.ep)
 
-            material_layout.addWidget(QLabel("\u03BC"))
-            self.mu.setText(str(self.layer.mu))
-            material_layout.addWidget(self.mu)
+                    material_layout.addWidget(QLabel("\u03BC"))
+                    self.mu.setText(str(self.layer.mu))
+                    material_layout.addWidget(self.mu)
 
-            material_layout.addWidget(QLabel("\u03C3"))
-            self.sg.setText(str(self.layer.sg))
-            material_layout.addWidget(self.sg)
+                    material_layout.addWidget(QLabel("\u03C3"))
+                    self.sg.setText(str(self.layer.sg))
+                    material_layout.addWidget(self.sg)
 
-            bottom_label = QLabel("Boundary")
-            bottom_label.setFont(u_font)
-            left_layout.addWidget(bottom_label)
+                    bottom_label = QLabel("Boundary")
+                    bottom_label.setFont(u_font)
+                    left_layout.addWidget(bottom_label)
 
-            bottom_select_layout = QHBoxLayout()
-            left_layout.addLayout(bottom_select_layout)
+                    bottom_select_layout = QHBoxLayout()
+                    left_layout.addLayout(bottom_select_layout)
 
-            bottom_type_label = QLabel("Type:")
-            bottom_type_label.setFixedWidth(200)
-            bottom_select_layout.addWidget(bottom_type_label)
-            bottom_select_layout.addWidget(self.bottom_type_select)
+                    bottom_type_label = QLabel("Type:")
+                    bottom_type_label.setFixedWidth(200)
+                    bottom_select_layout.addWidget(bottom_type_label)
+                    bottom_select_layout.addWidget(self.bottom_type_select)
 
-            if isinstance(self.layer.bot, Geometry.PointBoundary):
-                self.bottom_type_select.setCurrentIndex(0)
-                self.bottom_points_widget.boundary = self.layer.bot
-                self.bottom_points_widget.update_points()
-                left_layout.addWidget(self.bottom_points_widget)
-            elif isinstance(self.layer.bot, Geometry.EquationBoundary):
-                self.bottom_type_select.setCurrentIndex(1)
-                num_points_layout = QHBoxLayout()
-                left_layout.addLayout(num_points_layout)
-                num_points_label = QLabel("Number of Points")
-                num_points_label.setFixedWidth(200)
-                num_points_layout.addWidget(num_points_label)
+                    if isinstance(self.layer.bot, Geometry.PointBoundary):
+                        self.bottom_type_select.setCurrentIndex(0)
+                        self.bottom_points_widget.boundary = self.layer.bot
+                        self.bottom_points_widget.update_points()
+                        left_layout.addWidget(self.bottom_points_widget)
+                    elif isinstance(self.layer.bot, Geometry.EquationBoundary):
+                        self.bottom_type_select.setCurrentIndex(1)
+                        num_points_layout = QHBoxLayout()
+                        left_layout.addLayout(num_points_layout)
+                        num_points_label = QLabel("Number of Points")
+                        num_points_label.setFixedWidth(200)
+                        num_points_layout.addWidget(num_points_label)
 
-                self.bottom_num_points.setText(str(self.layer.bot.num_points))
-                num_points_layout.addWidget(self.bottom_num_points)
+                        self.bottom_num_points.setText(str(self.layer.bot.num_points))
+                        num_points_layout.addWidget(self.bottom_num_points)
 
-                left_layout.addWidget(QLabel("Boundary Equation:"))
-                self.bottom_equation.setText(self.layer.bot.equation_text)
-                left_layout.addWidget(self.bottom_equation)
+                        left_layout.addWidget(QLabel("Boundary Equation:"))
+                        self.bottom_equation.setText(self.layer.bot.equation_text)
+                        left_layout.addWidget(self.bottom_equation)
 
-            if isinstance(self.layer, Geometry.Wall):
-                self.delete_button.setDisabled(True)
-            else:
-                self.delete_button.setDisabled(False)
+                    if isinstance(self.layer, Geometry.Wall):
+                        self.delete_button.setDisabled(True)
+                        name_label.setText("Wall Name: ")
+                    else:
+                        self.delete_button.setDisabled(False)
 
-                bottom_label.setText("Inner Boundary")
+                        bottom_label.setText("Inner Boundary")
 
-                top_label = QLabel("Outer Boundary")
-                top_label.setFont(u_font)
-                right_layout.addWidget(top_label)
+                        top_label = QLabel("Outer Boundary")
+                        top_label.setFont(u_font)
+                        right_layout.addWidget(top_label)
 
-                top_select_layout = QHBoxLayout()
-                right_layout.addLayout(top_select_layout)
+                        top_select_layout = QHBoxLayout()
+                        right_layout.addLayout(top_select_layout)
 
-                top_type_label = QLabel("Type:")
-                top_type_label.setFixedWidth(200)
-                top_select_layout.addWidget(top_type_label)
-                top_select_layout.addWidget(self.top_type_select)
+                        top_type_label = QLabel("Type:")
+                        top_type_label.setFixedWidth(200)
+                        top_select_layout.addWidget(top_type_label)
+                        top_select_layout.addWidget(self.top_type_select)
 
-                if isinstance(self.layer.top, Geometry.PointBoundary):
-                    self.top_type_select.setCurrentIndex(0)
-                    self.top_points_widget.boundary = self.layer.top
-                    self.top_points_widget.update_points()
-                    right_layout.addWidget(self.top_points_widget)
-                elif isinstance(self.layer.top, Geometry.EquationBoundary):
-                    self.top_type_select.setCurrentIndex(1)
-                    num_points_layout = QHBoxLayout()
-                    right_layout.addLayout(num_points_layout)
-                    num_points_label = QLabel("Number of Points")
-                    num_points_label.setFixedWidth(200)
-                    num_points_layout.addWidget(num_points_label)
+                        if isinstance(self.layer.top, Geometry.PointBoundary):
+                            self.top_type_select.setCurrentIndex(0)
+                            self.top_points_widget.boundary = self.layer.top
+                            self.top_points_widget.update_points()
+                            right_layout.addWidget(self.top_points_widget)
+                        elif isinstance(self.layer.top, Geometry.EquationBoundary):
+                            self.top_type_select.setCurrentIndex(1)
+                            num_points_layout = QHBoxLayout()
+                            right_layout.addLayout(num_points_layout)
+                            num_points_label = QLabel("Number of Points")
+                            num_points_label.setFixedWidth(200)
+                            num_points_layout.addWidget(num_points_label)
 
-                    self.top_num_points.setText(str(self.layer.top.num_points))
-                    num_points_layout.addWidget(self.top_num_points)
+                            self.top_num_points.setText(str(self.layer.top.num_points))
+                            num_points_layout.addWidget(self.top_num_points)
 
-                    right_layout.addWidget(QLabel("Boundary Equation:"))
-                    self.top_equation.setText(self.layer.top.equation_text)
-                    right_layout.addWidget(self.top_equation)
+                            right_layout.addWidget(QLabel("Boundary Equation:"))
+                            self.top_equation.setText(self.layer.top.equation_text)
+                            right_layout.addWidget(self.top_equation)
+
+                case Geometry.Mesh:
+                    name_label.setText("Mesh Name: ")
+
+                    properties_label = QLabel("Properties")
+                    properties_label.setFont(u_font)
+                    self.layout.addWidget(properties_label)
+
+                    properties_layout = QHBoxLayout()
+                    self.layout.addLayout(properties_layout)
+                    properties_layout.addWidget(QLabel(""))
 
         self.emits_enabled = True
 

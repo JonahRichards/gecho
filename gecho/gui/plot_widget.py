@@ -13,7 +13,9 @@ def color_gen():
     while True:
         colors = ["#4bb4ff",
                   "#4bffb4",
-                  "#ff4bb4"]
+                  "#ff4bb4",
+                  "#b44bff",
+                  "#b4ff4b"]
         for c in colors:
             yield c
 
@@ -30,7 +32,7 @@ class PlotWidget(QWidget):
 
         self.figure = Figure()
         self.figure.set_facecolor("#0D1013")
-        self.figure.tight_layout()
+        # self.figure.tight_layout()
 
         self.ax = self.figure.add_subplot()
 
@@ -60,13 +62,26 @@ class PlotWidget(QWidget):
         c = next(self.colors)
 
         self.ax.fill(z, r, c=c, label=layer.name)
-        self.ax.scatter(z, r, c="white", linestyle="-", linewidth=1)
+        self.ax.plot(z, r, c="white", linestyle="-", linewidth=1)
 
         ref = True
 
         if ref:
             self.ax.fill(z, -r, c=c)
             self.ax.plot(z, -r, c="white", linestyle="-", linewidth=1)
+
+    def plot_monitor(self, monitor: Geometry.Monitor):
+        r = [monitor.r_0, monitor.r_0, monitor.r_1, monitor.r_1]
+
+        if monitor.type == "z":
+            z = [monitor.s_0, monitor.s_1, monitor.s_1, monitor.s_0]
+        else:
+            z = [monitor.z_0, monitor.z_1, monitor.z_1, monitor.z_0]
+
+        c = next(self.colors)
+
+        self.ax.fill(z, r, c=c, label=monitor.name, alpha=0.5)
+        self.ax.plot(z, r, c=c, linestyle="dashed", linewidth=1)
 
     def plot_geometry(self, geometry: Geometry):
         self.colors = color_gen()
@@ -79,15 +94,11 @@ class PlotWidget(QWidget):
         x = np.array(geometry.wall.bot.zs)
         y = np.array(geometry.wall.bot.rs)
 
-        self.ax.plot(x, y, "r.", label=geometry.wall.name)
+        self.ax.plot(x, y, "r", label=geometry.wall.name)
         self.ax.plot(x, -y, "r")
 
-        # for mon in chamber.monitors:
-        #     if mon.type == "s":
-        #         plot(mon.z, mon.r, "s-Monitor", c1="magenta", c2="magenta", alpha=0.5, linestyle="-", ref=False)
-        #     if mon.type == "z":
-        #         zmon = mon
-        #         plot(mon.z, mon.r, "z-Monitor", c1="lime", c2="lime", alpha=0.5, linestyle="-", ref=False)
+        for mon in geometry.monitors:
+            self.plot_monitor(mon)
 
         # plt.title("Geometry")
 

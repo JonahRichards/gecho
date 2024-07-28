@@ -23,10 +23,19 @@ class LayerWidget(QWidget):
 
         layout = QHBoxLayout()
 
-        if isinstance(layer, Geometry.Layer):
-            self.icon = QIcon("resources/icons/layer.png")
-        else:
-            self.icon = QIcon("resources/icons/wall.png")
+        match type(layer):
+            case Geometry.Layer:
+                self.icon = QIcon("resources/icons/layer.png")
+            case Geometry.Wall:
+                self.icon = QIcon("resources/icons/wall.png")
+            case Geometry.Mesh:
+                self.icon = QIcon("resources/icons/mesh.png")
+            case Geometry.Monitor:
+                self.icon = QIcon("resources/icons/monitor.png")
+            case Geometry.Model:
+                self.icon = QIcon("resources/icons/model.png")
+            case Geometry.Beam:
+                self.icon = QIcon("resources/icons/beam.png")
 
         self.icon_label = QLabel("")
         self.icon_label.setPixmap(self.icon.pixmap(QSize(30, 30)))
@@ -34,7 +43,10 @@ class LayerWidget(QWidget):
         layout.addWidget(self.icon_label)
 
         self.label = QLabel()
+
         self.label.setText(layer.name)
+
+
         layout.addWidget(self.label)
 
         self.setLayout(layout)
@@ -42,13 +54,6 @@ class LayerWidget(QWidget):
         self.mousePressEvent = self.select_layer
         self.enterEvent = self.highlight_layer
         self.leaveEvent = self.unhighlight_layer
-
-    def delete_layer(self):
-        self.parent_layout.removeWidget(self)
-        self.deleteLater()
-
-    def get_name(self):
-        return self.name_input.text()
 
     def select_layer(self, event):
         self.deselect_all.emit()
