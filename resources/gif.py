@@ -8,7 +8,7 @@ import os
 import cmasher as cmr
 import pickle as pk
 
-from gecho.processing.processing import get_mon_params
+from resources.processing import get_mon_params
 from gecho.geometry.geometry import Geometry
 
 matplotlib.use("QtAgg")

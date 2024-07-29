@@ -8,6 +8,7 @@ from gecho.geometry.geometry import Geometry
 class LayerWidget(QWidget):
     selected = Signal(Geometry.Layer)
     deselect_all = Signal()
+    base_path = None
 
     def __init__(self, layer):
         super().__init__()
@@ -25,17 +26,17 @@ class LayerWidget(QWidget):
 
         match type(layer):
             case Geometry.Layer:
-                self.icon = QIcon("resources/icons/layer.png")
+                self.icon = QIcon(LayerWidget.base_path + "resources/icons/layer.png")
             case Geometry.Wall:
-                self.icon = QIcon("resources/icons/wall.png")
+                self.icon = QIcon(LayerWidget.base_path + "resources/icons/wall.png")
             case Geometry.Mesh:
-                self.icon = QIcon("resources/icons/mesh.png")
+                self.icon = QIcon(LayerWidget.base_path + "resources/icons/mesh.png")
             case Geometry.Monitor:
-                self.icon = QIcon("resources/icons/monitor.png")
+                self.icon = QIcon(LayerWidget.base_path + "resources/icons/monitor.png")
             case Geometry.Model:
-                self.icon = QIcon("resources/icons/model.png")
+                self.icon = QIcon(LayerWidget.base_path + "resources/icons/model.png")
             case Geometry.Beam:
-                self.icon = QIcon("resources/icons/beam.png")
+                self.icon = QIcon(LayerWidget.base_path + "resources/icons/beam.png")
 
         self.icon_label = QLabel("")
         self.icon_label.setPixmap(self.icon.pixmap(QSize(30, 30)))

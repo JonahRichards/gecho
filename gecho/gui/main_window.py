@@ -1,8 +1,5 @@
 import os
-import pickle
-import shutil
 import subprocess
-import sys
 
 from PySide6 import QtGui
 from PySide6.QtWidgets import QMainWindow, QMenu, QMenuBar, QVBoxLayout, QWidget, QScrollArea, QPushButton, \
@@ -35,15 +32,16 @@ def icon(ext):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, root):
+    def __init__(self, base_path, app_path):
         super().__init__()
         self.setWindowTitle("GECHO-v1.0")
-        self.setWindowIcon(QIcon('resources/icons/logo.png'))
+        self.setWindowIcon(QIcon(base_path + 'resources/icons/logo.png'))
         self.setGeometry(300, 300, 1600, 800)
-        self.root = root
+        self.base_path = base_path
+        self.app_path = app_path
 
         # PROJECT MANAGER
-        self.project_manager = ProjectManager(root)
+        self.project_manager = ProjectManager(base_path)
 
         # MENU BAR
         self.menu_bar = QMenuBar(self)
@@ -52,11 +50,11 @@ class MainWindow(QMainWindow):
         file_menu = QMenu("&File", self)
         self.menu_bar.addMenu(file_menu)
 
-        new_action = QAction(QIcon('resources/icons/new.png'), "New Project", self)
+        new_action = QAction(QIcon(base_path + 'resources/icons/new.png'), "New Project", self)
         new_action.triggered.connect(self.new_project)
         file_menu.addAction(new_action)
 
-        open_action = QAction(QIcon('resources/icons/open.png'), "Open Project", self)
+        open_action = QAction(QIcon(base_path + 'resources/icons/open.png'), "Open Project", self)
         open_action.triggered.connect(self.open_project)
         file_menu.addAction(open_action)
 
@@ -81,7 +79,7 @@ class MainWindow(QMainWindow):
         self.left_panel_layout.addLayout(self.project_buttons_layout)
 
         self.add_geometry_button = QPushButton(" New Geometry")
-        self.add_geometry_button.setIcon(QIcon("resources/icons/geometry.png"))
+        self.add_geometry_button.setIcon(QIcon(base_path + "resources/icons/geometry.png"))
         self.add_geometry_button.clicked.connect(self.new_geometry)
         self.add_geometry_button.setDisabled(True)
         self.project_buttons_layout.addWidget(self.add_geometry_button)
@@ -102,6 +100,8 @@ class MainWindow(QMainWindow):
         self.construct()
         self.simulate()
         self.execute()
+
+        LayerWidget.base_path = self.base_path
 
         self.top_splitter.setStretchFactor(0, 1)
         self.top_splitter.setStretchFactor(1, 3)
@@ -140,7 +140,7 @@ class MainWindow(QMainWindow):
         tabs_layout.addWidget(self.tabs_file_name_label)
 
         self.add_monitor_button = QPushButton("Add Monitor")
-        self.add_monitor_button.setIcon(QIcon("resources/icons/monitor.png"))
+        self.add_monitor_button.setIcon(QIcon(self.base_path + "resources/icons/monitor.png"))
         self.add_monitor_button.clicked.connect(self.add_monitor)
         tabs_layout.addWidget(self.add_monitor_button)
 
@@ -252,7 +252,7 @@ class MainWindow(QMainWindow):
         self.layers_layout.addLayout(self.component_buttons_layout)
 
         self.add_layer_button = QPushButton(" Add Layer")
-        self.add_layer_button.setIcon(QIcon("resources/icons/layer.png"))
+        self.add_layer_button.setIcon(QIcon(self.base_path + "resources/icons/layer.png"))
         self.add_layer_button.clicked.connect(self.add_layer)
         self.component_buttons_layout.addWidget(self.add_layer_button)
 
@@ -318,6 +318,7 @@ class MainWindow(QMainWindow):
             layer_widget.selected.connect(self.display_layer_details)
             layer_widget.deselect_all.connect(self.deselect_all_layers)
             self.layer_list_layout.addWidget(layer_widget)
+            layer_widget.mousePressEvent(Qt.MouseEventFlag.MouseEventCreatedDoubleClick)
 
             for i, layer in enumerate(self.project_manager.current_item.layers):
                 layer_widget = LayerWidget(layer)
@@ -381,7 +382,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.generate_animation_checkbox)
 
         self.simulate_button = QPushButton("SIMULATE")
-        self.simulate_button.setIcon(QIcon("resources/icons/simulate.png"))
+        self.simulate_button.setIcon(QIcon(self.base_path + "resources/icons/simulate.png"))
         self.simulate_button.clicked.connect(self.execute_simulation)
         self.simulate_button.setFixedWidth(270)
         layout.addWidget(self.simulate_button)
@@ -495,12 +496,12 @@ class MainWindow(QMainWindow):
         for i, item in enumerate(project_files):
             if isinstance(item, tuple):
                 dir_item = QTreeWidgetItem(parent_item, [item[0]])
-                dir_item.setIcon(0, QIcon('resources/icons/folder-closed.png'))
+                dir_item.setIcon(0, QIcon(self.base_path + 'resources/icons/folder-closed.png'))
                 # dir_item.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.DontShowIndicator)
                 self._populate_project_tree(item[1], dir_item)
             else:
                 file_item = QTreeWidgetItem(parent_item, [item])
-                file_item.setIcon(0, QIcon(f'resources/icons/{icon(os.path.splitext(item)[1])}'))
+                file_item.setIcon(0, QIcon(self.base_path + f'resources/icons/{icon(os.path.splitext(item)[1])}'))
                 # file_item.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.DontShowIndicator)
 
     def new_project(self):
@@ -516,7 +517,7 @@ class MainWindow(QMainWindow):
         grid_layout.addWidget(dir_label, 0, 0)
 
         self.dir_line_edit = QLineEdit()
-        self.dir_line_edit.setText(self.root)
+        self.dir_line_edit.setText(self.base_path)
         grid_layout.addWidget(self.dir_line_edit, 0, 1)
 
         browse_button = QPushButton("Browse")
@@ -573,17 +574,17 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Invalid Input", "Both project directory and project name are required.")
 
     def open_project(self):
-        directory = QFileDialog.getExistingDirectory(self, "Open Project Directory", self.root, QFileDialog.DontUseNativeDialog)
+        directory = QFileDialog.getExistingDirectory(self, "Open Project Directory", self.app_path, QFileDialog.DontUseNativeDialog)
         if directory:
             self.project_manager.open_project(directory)
             self.update_project_list()
             self.add_geometry_button.setDisabled(False)
 
     def on_item_expanded(self, item):
-        item.setIcon(0, QIcon("resources/icons/folder-open.png"))
+        item.setIcon(0, QIcon(self.base_path + "resources/icons/folder-open.png"))
 
     def on_item_collapsed(self, item):
-        item.setIcon(0, QIcon("resources/icons/folder-closed.png"))
+        item.setIcon(0, QIcon(self.base_path + "resources/icons/folder-closed.png"))
 
     def get_full_path(self, item):
         path_parts = []
@@ -659,15 +660,15 @@ class MainWindow(QMainWindow):
         os.makedirs(run_dir)
 
         generate_geometry_file(self.project_manager.current_item, run_dir)
-        generate_input_file(self.project_manager.current_item, run_dir)
+        generate_input_file(self.project_manager.current_item, run_dir, self.base_path)
 
         post_processing = self.post_processing_checkbox.isChecked()
         generate_animation = self.generate_animation_checkbox.isChecked()
 
         self.project_manager.add_file((run_name, ["geom.txt", "input_in.txt"]))
 
-        subprocess.Popen(['start', 'cmd', '/k', "resources\echo.bat", run_dir.replace("/", "\\"),
-                          "resources\ECHO2D.exe", "gecho\processing\processing.py", "gecho\processing\gif.py",
+        subprocess.Popen(['start', 'cmd', '/k', self.base_path + "resources\echo.bat", run_dir.replace("/", "\\"),
+                          self.base_path + "resources\ECHO2D.exe", self.base_path + "resources\processing.py", self.base_path + "resources\gif.py",
                           str(int(post_processing)), str(int(generate_animation))], shell=True)
 
         self.update_project_list()

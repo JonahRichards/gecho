@@ -48,12 +48,12 @@ def generate_geometry_file(geometry: Geometry(), dir):
             write(fp, layer)
 
 
-def generate_input_file(geometry: Geometry(), dir):
+def generate_input_file(geometry: Geometry(), dir, base):
     component_names = ["model", "mesh", "beam"]
     components = [getattr(geometry, name) for name in component_names]
     atts = {att_format(k): v for comp in components for k, v in comp.__dict__.items()}
 
-    with open(f"resources/input_in.txt", "r") as fp:
+    with open(base + f"resources/input_in.txt", "r") as fp:
         lines = fp.readlines()
 
     for i in reversed(range(len(lines))):

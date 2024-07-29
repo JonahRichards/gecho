@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from gecho.geometry.geometry import Geometry
 
 c = 3e8
 

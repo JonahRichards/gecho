@@ -1,4 +1,3 @@
-import json
 import os.path
 import pickle
 
@@ -46,6 +45,7 @@ class ProjectManager:
             case ".geom":
                 with open(path, "rb") as file:
                     self.current_item = pickle.load(file)
+                    self.current_item.path = path
             case ".npy":
                 self.current_item = np.load(path)
             case '.jpg' | '.jpeg' | '.png' | '.tif' | '.tiff':
