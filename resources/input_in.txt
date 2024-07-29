@@ -1,0 +1,50 @@
+%%%%%%%%%%%%%% geometry %%%%%%%%%%%%%%%%%%%%
+
+GeometryFile=geom.txt	
+Units=m	% -m/cm/mm
+GeometryType=round	 % recta / round
+Width=0.08	% in meters
+SymmetryCondition=magn	 % magn/elec
+Convex=0
+
+%%%%%%%%%%%%%% beam %%%%%%%%%%%%%%%%%%%%%%%%
+
+InPartFile=-
+BunchSigma=0.0001
+Offset=0
+InjectionTimeStep=0
+
+%%%%%%%%%%%%%%  field %%%%%%%%%%%%%%%%%%%%%%
+
+InFieldDir=-
+PortDir=-
+PortPosition=-1
+
+%%%%%%%%%%%%%% model %%%%%%%%%%%%%%%%%%%%%%%
+
+WakeIntMethod=ind
+Modes=0 
+ParticleMotion=0
+ParticleField=1
+CurrentFilter=0
+ParticleLoss=0
+
+%%%%%%%%%%%%%% mesh %%%%%%%%%%%%%%%%%%%%%%%
+
+MeshLength=1000.0
+StartPosition=0
+TimeSteps=-1
+StepY=5e-05
+StepZ=5e-05
+NStepsInConductive=10
+AdjustMesh=0
+MeshMotionFile=-
+
+%%%%%%%%%%%%%% monitors %%%%%%%%%%%%%%%%%%%%%%%
+
+DumpField=0
+DumpParticles=0
+DumpCurrent=0
+DumpMesh=0
+FieldMonitor={ 'Ez' 's' 0.052 0.0524 7e-05 0.00063 0.052 0.08 1}
+FieldMonitor={ 'Ez' 'z' 0.0 0.052 0.0 0.0012 0 0.0048 2}
